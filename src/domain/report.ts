@@ -1,4 +1,4 @@
-import { createDefaultAnswers } from "./answers";
+import { createDefaultAnswers, getVisibleAnswers } from "./answers";
 import { calculateFireResult, type FireResult } from "./fire";
 import { buildLifestyleModel, type LifestyleModel } from "./lifestyleModel";
 import { tierOrder } from "./tiers";
@@ -19,7 +19,7 @@ export interface Report {
 
 export function buildReport(answers: AnswerMap, selectedTier: ScenarioTier): Report {
   const comparison = tierOrder.map((tier) =>
-    buildTierReport({ ...createDefaultAnswers(tier), ...answers }, tier)
+    buildTierReport({ ...createDefaultAnswers(tier), ...getVisibleAnswers(answers, tier) }, tier)
   );
   const selected = comparison.find((row) => row.tier === selectedTier) ?? comparison[0];
   const impactItems = Object.entries(selected.lifestyle.categories)
