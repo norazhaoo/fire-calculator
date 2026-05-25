@@ -52,3 +52,39 @@ it("derives lower-tier values when downgrading", () => {
   });
   expect(getVisibleAnswers(downgraded, "baseline").privateMedicalBudget).toBeUndefined();
 });
+
+it("preserves lower-tier user provenance across upgrade and downgrade", () => {
+  const baseline = setAnswerValue(
+    createDefaultAnswers("baseline"),
+    "dailyFoodBudget",
+    120,
+    "baseline"
+  );
+
+  const abundant = switchTier(baseline, "baseline", "abundant");
+  const returned = switchTier(abundant, "abundant", "baseline");
+
+  expect(returned.dailyFoodBudget).toMatchObject({
+    value: 120,
+    source: "user",
+    editedInTier: "baseline"
+  });
+});
+
+it("preserves abundant-only user provenance across downgrade and upgrade", () => {
+  const abundant = setAnswerValue(
+    createDefaultAnswers("abundant"),
+    "privateMedicalBudget",
+    80000,
+    "abundant"
+  );
+
+  const baseline = switchTier(abundant, "abundant", "baseline");
+  const returned = switchTier(baseline, "baseline", "abundant");
+
+  expect(returned.privateMedicalBudget).toMatchObject({
+    value: 80000,
+    source: "user",
+    editedInTier: "abundant"
+  });
+});

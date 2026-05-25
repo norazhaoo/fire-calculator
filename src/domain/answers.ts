@@ -95,8 +95,10 @@ function upgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
     if (existing) {
       next[question.id] = {
         ...existing,
-        source: existing.source === "user" ? "inherited" : existing.source,
-        editedInTier: toTier
+        source:
+          existing.source === "user" && existing.editedInTier !== toTier
+            ? "inherited"
+            : existing.source
       };
     } else {
       next[question.id] = {
@@ -117,6 +119,14 @@ function downgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
   for (const question of getQuestionsForTier(toTier)) {
     const fallback = derivedFallbacks[question.id]?.[toTier];
     const existing = answers[question.id];
+
+    if (existing?.editedInTier === toTier) {
+      next[question.id] = {
+        ...existing,
+        source: existing.source === "inherited" ? "user" : existing.source
+      };
+      continue;
+    }
 
     next[question.id] = {
       questionId: question.id,
