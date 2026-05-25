@@ -44,8 +44,21 @@ it("shows answer sources on the review page", async () => {
   await user.click(screen.getByRole("button", { name: "Review 假设" }));
 
   expect(screen.getByRole("heading", { name: "安全版 Review" })).toBeInTheDocument();
+  expect(screen.getByRole("group", { name: "切换版本" })).toBeInTheDocument();
   expect(screen.getAllByText("default").length).toBeGreaterThan(0);
   expect(screen.getByRole("button", { name: "生成报告" })).toBeInTheDocument();
+});
+
+it("shows a report placeholder after generating from review", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.click(screen.getByRole("button", { name: /安全版/ }));
+  await user.click(screen.getByRole("button", { name: "Review 假设" }));
+  await user.click(screen.getByRole("button", { name: "生成报告" }));
+
+  expect(screen.getByRole("heading", { name: "报告生成中" })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "安全版生活问卷" })).not.toBeInTheDocument();
 });
 
 it("inherits answers when upgrading from baseline to abundant", async () => {

@@ -27,7 +27,7 @@ export function Review({
   return (
     <section aria-labelledby="review-title">
       <h1 id="review-title">{tierMeta[tier].label} Review</h1>
-      <div className="tier-switcher" aria-label="切换版本">
+      <div className="tier-switcher" aria-label="切换版本" role="group">
         {tierOrder
           .filter((item) => item !== tier)
           .map((item) => (

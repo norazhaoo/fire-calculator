@@ -60,6 +60,17 @@ export default function App() {
     );
   }
 
+  if (step === "report") {
+    return (
+      <main className="app-shell">
+        <section aria-labelledby="report-title">
+          <h1 id="report-title">报告生成中</h1>
+          <p>报告页面将在下一步接入。</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="app-shell">
       <Questionnaire
