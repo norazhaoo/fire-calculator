@@ -19,3 +19,17 @@ it("selects a tier and opens the questionnaire", async () => {
 
   expect(screen.getByRole("heading", { name: "安全版生活问卷" })).toBeInTheDocument();
 });
+
+it("allows users to answer visible questionnaire fields", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.click(screen.getByRole("button", { name: /安全版/ }));
+  const foodInput = screen.getByLabelText("每天吃饭预算");
+
+  await user.clear(foodInput);
+  await user.type(foodInput, "120");
+
+  expect(foodInput).toHaveValue(120);
+  expect(screen.getByRole("button", { name: "Review 假设" })).toBeInTheDocument();
+});

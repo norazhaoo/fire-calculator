@@ -1,22 +1,38 @@
 import { useState } from "react";
+import { Questionnaire } from "./components/Questionnaire";
 import { TierSelection } from "./components/TierSelection";
-import { tierMeta } from "./domain/tiers";
-import type { ScenarioTier } from "./domain/types";
+import { createDefaultAnswers } from "./domain/answers";
+import type { AnswerMap, ScenarioTier } from "./domain/types";
+
+type AppStep = "tier" | "questionnaire" | "review" | "report";
 
 export default function App() {
+  const [step, setStep] = useState<AppStep>("tier");
   const [selectedTier, setSelectedTier] = useState<ScenarioTier | null>(null);
+  const [answers, setAnswers] = useState<AnswerMap>({});
 
-  if (!selectedTier) {
+  function handleSelectTier(tier: ScenarioTier) {
+    setSelectedTier(tier);
+    setAnswers(createDefaultAnswers(tier));
+    setStep("questionnaire");
+  }
+
+  if (step === "tier" || !selectedTier) {
     return (
       <main className="app-shell">
-        <TierSelection onSelect={setSelectedTier} />
+        <TierSelection onSelect={handleSelectTier} />
       </main>
     );
   }
 
   return (
     <main className="app-shell">
-      <h1>{tierMeta[selectedTier].label}生活问卷</h1>
+      <Questionnaire
+        answers={answers}
+        tier={selectedTier}
+        onAnswersChange={setAnswers}
+        onReview={() => setStep("review")}
+      />
     </main>
   );
 }
