@@ -4,6 +4,8 @@
     "lib": ["ESNext"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "outDir": ".tsbuild/node",
+    "tsBuildInfoFile": ".tsbuild/tsconfig.node.tsbuildinfo",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "types": ["node"]

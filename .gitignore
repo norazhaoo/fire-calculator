@@ -1,1 +1,8 @@
 .worktrees/
+
+node_modules/
+dist/
+.tsbuild/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
