@@ -22,5 +22,111 @@ select {
 
 .app-shell {
   min-height: 100vh;
+  margin: 0 auto;
+  max-width: 1120px;
   padding: 32px;
+}
+
+.tier-grid,
+.comparison-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tier-card,
+.comparison-card,
+.summary-panel,
+.review-row {
+  border: 1px solid #d8d1c3;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 16px;
+}
+
+.tier-card {
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.form-grid,
+.review-list {
+  display: grid;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-field {
+  display: grid;
+  gap: 6px;
+}
+
+.form-field input,
+.form-field select {
+  border: 1px solid #c9c0af;
+  border-radius: 6px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.checkbox-field {
+  align-items: center;
+  display: flex;
+}
+
+.review-row {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto;
+}
+
+.source-pill {
+  border-radius: 999px;
+  background: #edf2e5;
+  color: #40522f;
+  padding: 6px 10px;
+}
+
+.tier-switcher,
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  border: 1px solid #3f5f45;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #213926;
+  padding: 10px 14px;
+}
+
+.primary-button {
+  background: #2f6840;
+  color: #ffffff;
+}
+
+.impact-list {
+  line-height: 1.8;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 20px;
+  }
+
+  .tier-grid,
+  .comparison-grid,
+  .form-grid,
+  .review-row {
+    grid-template-columns: 1fr;
+  }
 }

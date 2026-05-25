@@ -56,3 +56,18 @@ Possible additions after the MVP:
 
 No application stack has been chosen yet. Keep the first implementation small,
 testable, and focused on the calculation model before expanding the interface.
+
+## Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+Validation:
+
+```bash
+npm test
+npm run typecheck
+npm run build
+```
