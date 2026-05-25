@@ -53,7 +53,7 @@ export function buildLifestyleModel(answers: AnswerMap, tier: ScenarioTier): Lif
 function numberAnswer(answers: AnswerMap, questionId: string) {
   const value = answers[questionId]?.value;
 
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
 function stringAnswer(answers: AnswerMap, questionId: string) {
