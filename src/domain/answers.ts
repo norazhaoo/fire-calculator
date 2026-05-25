@@ -1,6 +1,6 @@
 import { getQuestionsForTier, questions } from "./questions";
 import { isDowngrade, isUpgrade } from "./tiers";
-import type { AnswerMap, ScenarioTier } from "./types";
+import type { Answer, AnswerMap, AnswerSnapshot, ScenarioTier } from "./types";
 
 const questionById = new Map(questions.map((question) => [question.id, question]));
 
@@ -35,7 +35,14 @@ export function createDefaultAnswers(tier: ScenarioTier): AnswerMap {
         questionId: question.id,
         value: question.defaultValue,
         source: "default",
-        editedInTier: tier
+        editedInTier: tier,
+        history: {
+          [tier]: {
+            value: question.defaultValue,
+            source: "default",
+            editedInTier: tier
+          }
+        }
       }
     ])
   );
@@ -53,7 +60,15 @@ export function setAnswerValue(
       questionId,
       value,
       source: "user",
-      editedInTier: tier
+      editedInTier: tier,
+      history: {
+        ...answers[questionId]?.history,
+        [tier]: {
+          value,
+          source: "user",
+          editedInTier: tier
+        }
+      }
     }
   };
 }
@@ -91,21 +106,33 @@ function upgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
 
   for (const question of getQuestionsForTier(toTier)) {
     const existing = answers[question.id];
+    const history = existing ? saveCurrentSnapshot(existing).history : {};
+    const targetSnapshot = history?.[toTier];
 
-    if (existing) {
+    if (targetSnapshot) {
+      next[question.id] = answerFromSnapshot(question.id, targetSnapshot, history);
+    } else if (existing) {
       next[question.id] = {
         ...existing,
         source:
           existing.source === "user" && existing.editedInTier !== toTier
             ? "inherited"
-            : existing.source
+            : existing.source,
+        history
       };
     } else {
       next[question.id] = {
         questionId: question.id,
         value: question.defaultValue,
         source: "default",
-        editedInTier: toTier
+        editedInTier: toTier,
+        history: {
+          [toTier]: {
+            value: question.defaultValue,
+            source: "default",
+            editedInTier: toTier
+          }
+        }
       };
     }
   }
@@ -119,24 +146,65 @@ function downgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
   for (const question of getQuestionsForTier(toTier)) {
     const fallback = derivedFallbacks[question.id]?.[toTier];
     const existing = answers[question.id];
+    const history = existing ? saveCurrentSnapshot(existing).history : {};
+    const targetSnapshot = history?.[toTier];
 
-    if (existing?.editedInTier === toTier) {
-      next[question.id] = {
-        ...existing,
-        source: existing.source === "inherited" ? "user" : existing.source
-      };
+    if (targetSnapshot) {
+      next[question.id] = answerFromSnapshot(question.id, targetSnapshot, history);
       continue;
     }
 
-    next[question.id] = {
+    const derivedAnswer: Answer = {
       questionId: question.id,
       value: fallback ?? existing?.value ?? question.defaultValue,
       source: "derived",
-      editedInTier: toTier
+      editedInTier: toTier,
+      history
+    };
+
+    next[question.id] = {
+      ...derivedAnswer,
+      history: saveCurrentSnapshot(derivedAnswer).history
     };
   }
 
   return next;
+}
+
+function saveCurrentSnapshot(answer: Answer): Answer {
+  const existingSnapshot = answer.history?.[answer.editedInTier];
+  const shouldKeepExistingUserSnapshot =
+    existingSnapshot?.source === "user" && answer.source !== "user";
+
+  return {
+    ...answer,
+    history: {
+      ...answer.history,
+      [answer.editedInTier]: shouldKeepExistingUserSnapshot ? existingSnapshot : toSnapshot(answer)
+    }
+  };
+}
+
+function answerFromSnapshot(
+  questionId: string,
+  snapshot: AnswerSnapshot,
+  history: Answer["history"]
+): Answer {
+  return {
+    questionId,
+    value: snapshot.value,
+    source: snapshot.source,
+    editedInTier: snapshot.editedInTier,
+    history
+  };
+}
+
+function toSnapshot(answer: Answer): AnswerSnapshot {
+  return {
+    value: answer.value,
+    source: answer.source,
+    editedInTier: answer.editedInTier
+  };
 }
 
 export function getQuestionLabel(questionId: string) {

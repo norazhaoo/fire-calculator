@@ -37,6 +37,13 @@ export interface Answer {
   value: number | string | boolean;
   source: AnswerSource;
   editedInTier: ScenarioTier;
+  history?: Partial<Record<ScenarioTier, AnswerSnapshot>>;
+}
+
+export interface AnswerSnapshot {
+  value: number | string | boolean;
+  source: AnswerSource;
+  editedInTier: ScenarioTier;
 }
 
 export type AnswerMap = Record<string, Answer>;

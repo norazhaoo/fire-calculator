@@ -88,3 +88,21 @@ it("preserves abundant-only user provenance across downgrade and upgrade", () =>
     editedInTier: "abundant"
   });
 });
+
+it("preserves shared higher-tier user provenance across downgrade and upgrade", () => {
+  const abundant = setAnswerValue(
+    createDefaultAnswers("abundant"),
+    "parentsSupportAnnual",
+    88000,
+    "abundant"
+  );
+
+  const safe = switchTier(abundant, "abundant", "safe");
+  const returned = switchTier(safe, "safe", "abundant");
+
+  expect(returned.parentsSupportAnnual).toMatchObject({
+    value: 88000,
+    source: "user",
+    editedInTier: "abundant"
+  });
+});
