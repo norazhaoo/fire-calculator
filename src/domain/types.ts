@@ -26,9 +26,9 @@ export interface Question {
   category: QuestionCategory;
   inputType: QuestionInputType;
   unit?: "yuan" | "percent" | "years" | "count";
-  tiers: ScenarioTier[];
+  tiers: readonly ScenarioTier[];
   defaultValue: number | string | boolean;
-  options?: SelectOption[];
+  options?: readonly SelectOption[];
   helperText?: string;
 }
 

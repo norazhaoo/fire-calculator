@@ -1,9 +1,9 @@
 import { tierRank } from "./tiers";
 import type { Question, ScenarioTier } from "./types";
 
-const allTiers: ScenarioTier[] = ["baseline", "safe", "abundant"];
-const safeAndUp: ScenarioTier[] = ["safe", "abundant"];
-const abundantOnly: ScenarioTier[] = ["abundant"];
+const allTiers = ["baseline", "safe", "abundant"] as const satisfies readonly ScenarioTier[];
+const safeAndUp = ["safe", "abundant"] as const satisfies readonly ScenarioTier[];
+const abundantOnly = ["abundant"] as const satisfies readonly ScenarioTier[];
 
 export const questions: Question[] = [
   {
