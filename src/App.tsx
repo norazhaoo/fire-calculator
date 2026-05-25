@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Questionnaire } from "./components/Questionnaire";
+import { Report } from "./components/Report";
 import { Review } from "./components/Review";
 import { TierSelection } from "./components/TierSelection";
 import { createDefaultAnswers, setAnswerValue, switchTier } from "./domain/answers";
@@ -63,10 +64,7 @@ export default function App() {
   if (step === "report") {
     return (
       <main className="app-shell">
-        <section aria-labelledby="report-title">
-          <h1 id="report-title">报告生成中</h1>
-          <p>报告页面将在下一步接入。</p>
-        </section>
+        <Report answers={answers} tier={selectedTier} onBackToReview={() => setStep("review")} />
       </main>
     );
   }

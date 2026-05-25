@@ -49,7 +49,7 @@ it("shows answer sources on the review page", async () => {
   expect(screen.getByRole("button", { name: "生成报告" })).toBeInTheDocument();
 });
 
-it("shows a report placeholder after generating from review", async () => {
+it("generates a report with selected tier and three-tier comparison", async () => {
   const user = userEvent.setup();
   render(<App />);
 
@@ -57,8 +57,10 @@ it("shows a report placeholder after generating from review", async () => {
   await user.click(screen.getByRole("button", { name: "Review 假设" }));
   await user.click(screen.getByRole("button", { name: "生成报告" }));
 
-  expect(screen.getByRole("heading", { name: "报告生成中" })).toBeInTheDocument();
-  expect(screen.queryByRole("heading", { name: "安全版生活问卷" })).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "你的 FIRE 估算" })).toBeInTheDocument();
+  expect(screen.getByText("主版本：安全版")).toBeInTheDocument();
+  expect(screen.getByText("三档对比")).toBeInTheDocument();
+  expect(screen.getByText("最大影响项")).toBeInTheDocument();
 });
 
 it("inherits answers when upgrading from baseline to abundant", async () => {
