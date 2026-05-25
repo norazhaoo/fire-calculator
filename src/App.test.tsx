@@ -28,6 +28,8 @@ it("allows users to answer visible questionnaire fields", async () => {
   const foodInput = screen.getByLabelText("每天吃饭预算");
 
   await user.clear(foodInput);
+  expect(foodInput).toHaveValue(null);
+
   await user.type(foodInput, "120");
 
   expect(foodInput).toHaveValue(120);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Questionnaire } from "./components/Questionnaire";
 import { TierSelection } from "./components/TierSelection";
-import { createDefaultAnswers } from "./domain/answers";
+import { createDefaultAnswers, setAnswerValue } from "./domain/answers";
 import type { AnswerMap, ScenarioTier } from "./domain/types";
 
 type AppStep = "tier" | "questionnaire" | "review" | "report";
@@ -17,6 +17,14 @@ export default function App() {
     setStep("questionnaire");
   }
 
+  function handleAnswerChange(questionId: string, value: number | string | boolean) {
+    if (!selectedTier) {
+      return;
+    }
+
+    setAnswers((currentAnswers) => setAnswerValue(currentAnswers, questionId, value, selectedTier));
+  }
+
   if (step === "tier" || !selectedTier) {
     return (
       <main className="app-shell">
@@ -30,7 +38,7 @@ export default function App() {
       <Questionnaire
         answers={answers}
         tier={selectedTier}
-        onAnswersChange={setAnswers}
+        onAnswerChange={handleAnswerChange}
         onReview={() => setStep("review")}
       />
     </main>
