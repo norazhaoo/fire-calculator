@@ -68,3 +68,16 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+## Deployment
+
+GitHub Pages is deployed by `.github/workflows/deploy-pages.yml` when `main`
+is pushed or when the workflow is run manually.
+
+The workflow runs tests, typecheck, and a production build. During the Pages
+build it sets `GITHUB_PAGES=true`, which makes Vite serve assets from the
+repository path:
+
+```text
+https://norazhaoo.github.io/fire-calculator/
+```
