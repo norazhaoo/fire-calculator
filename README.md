@@ -13,16 +13,21 @@ Users choose one scenario first:
 - `安全版`: stable life with medical, family, and education buffers.
 - `富足版`: wider choice set for travel, healthcare, education, and family support.
 
-The calculator then collects inputs in separate sections:
+After a scenario is chosen, users land on a light estimator home:
+
+- Current age is editable at the top of the page.
+- Three primary cards summarize income, assets and investment, and expenses.
+- Users can jump into any card, return to the estimator home, then review or
+  generate a report without walking through a long linear questionnaire.
+
+The three editable sections are:
 
 - Income: fixed salary, bonus, part-time work, business income, rent, investment
-  cash flow, and other income. Each source can be marked as continuing after
-  FIRE. The page starts with income source cards, then opens one source at a
-  time for detail entry.
+  cash flow, and other income. Each source is shown in one compact section and
+  can be marked as continuing after FIRE.
 - Assets and investment: cash, low-risk assets, medium-risk assets, high-risk
   assets, home, and investment property. Each bucket has amount, expected return,
-  and whether it counts toward FIRE assets. The overview keeps the asset page
-  scannable before users drill into each bucket.
+  and whether it counts toward FIRE assets.
 - Expenses: each category supports a quick estimate or expanded itemized
   details. Every amount can be entered as daily, weekly, monthly, or annual and
   is annualized by the model. Categories include daily life, housing, transport,

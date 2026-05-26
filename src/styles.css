@@ -35,9 +35,18 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.home-card-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 24px 0;
+}
+
 .tier-card,
 .overview-card,
 .comparison-card,
+.home-card,
+.entry-card,
 .detail-panel,
 .summary-panel,
 .review-row {
@@ -68,6 +77,44 @@ select {
   font-weight: 700;
 }
 
+.home-summary {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  margin: 24px 0;
+}
+
+.profile-strip,
+.summary-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.summary-panel p {
+  margin: 0;
+}
+
+.home-card {
+  display: grid;
+  gap: 12px;
+}
+
+.home-card h2,
+.entry-card h2 {
+  margin: 0;
+}
+
+.home-card strong {
+  color: #223f29;
+  font-size: 1.12rem;
+}
+
+.home-card p {
+  color: #5f665f;
+  margin: 0;
+}
+
 .detail-panel {
   margin: 24px 0;
 }
@@ -77,10 +124,32 @@ select {
 }
 
 .detail-fields,
-.itemized-stack {
+.itemized-stack,
+.section-stack {
   display: grid;
   gap: 16px;
   margin-top: 18px;
+}
+
+.entry-card {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.paired-fields,
+.asset-fields {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+}
+
+.paired-fields {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.8fr);
+}
+
+.asset-fields {
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 180px) minmax(180px, 0.8fr);
 }
 
 .item-row {
@@ -119,10 +188,14 @@ select {
 }
 
 .expense-card-header {
-  align-items: end;
+  align-items: center;
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr minmax(220px, 320px);
+}
+
+.expense-card-header button {
+  justify-self: end;
 }
 
 .expense-card h2,
@@ -236,7 +309,12 @@ button {
   .tier-grid,
   .comparison-grid,
   .overview-grid,
+  .home-card-grid,
+  .home-summary,
   .form-grid,
+  .entry-card,
+  .paired-fields,
+  .asset-fields,
   .item-row,
   .review-row,
   .expense-card-header,

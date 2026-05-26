@@ -52,6 +52,16 @@ export function Review({
 
       <ReviewGroup
         answers={answers}
+        title="高级假设"
+        tier={tier}
+        questions={getQuestionsForSection(tier, "profile").filter(
+          (question) => question.id === "withdrawalRate"
+        )}
+        onAnswerChange={onAnswerChange}
+      />
+
+      <ReviewGroup
+        answers={answers}
         title="收入"
         tier={tier}
         questions={getQuestionsForSection(tier, "income")}
@@ -104,7 +114,7 @@ export function Review({
 
       <div className="action-row">
         <button type="button" onClick={onBack}>
-          修改问卷
+          返回估算首页
         </button>
         <button className="primary-button" type="button" onClick={onGenerateReport}>
           生成报告
