@@ -8,21 +8,10 @@ interface ReportProps {
   onBackToReview: () => void;
 }
 
-const categoryLabels = {
-  basics: "基础信息",
-  dailyLife: "日常生活",
-  housing: "居住",
-  transport: "交通",
-  travel: "旅游",
-  largePurchases: "大件和兴趣",
-  children: "孩子教育",
-  family: "家庭责任",
-  medical: "医疗风险"
-};
-
 export function Report({ answers, tier, onBackToReview }: ReportProps) {
   const report = buildReport(answers, tier);
   const selected = report.selected;
+  const financial = selected.financial;
 
   return (
     <section aria-labelledby="report-title">
@@ -36,8 +25,20 @@ export function Report({ answers, tier, onBackToReview }: ReportProps) {
         </p>
         <p>
           预计 FIRE 年龄：
-          {selected.fire.fireAge === null ? "需要补充投资输入" : `${selected.fire.fireAge} 岁`}
+          {selected.fire.fireAge === null ? "需要改善现金流或资产假设" : `${selected.fire.fireAge} 岁`}
         </p>
+        {report.cashflowWarning ? <p className="warning-text">{report.cashflowWarning}</p> : null}
+      </div>
+
+      <div className="metric-grid">
+        <Metric label="年度收入" value={financial.income.totalAnnualBeforeFire} />
+        <Metric label="FIRE 前年度支出" value={financial.expenses.totalCurrentAnnual} />
+        <Metric label="年度可投资结余" value={financial.annualContribution} />
+        <Metric label="当前可投资资产" value={financial.assets.investableAssets} />
+        <Metric label="FIRE 后年度支出" value={financial.expenses.totalRetirementAnnual} />
+        <Metric label="FIRE 后持续收入" value={financial.income.totalAnnualAfterFire} />
+        <Metric label="FIRE 后净支出" value={financial.netAnnualFireExpense} />
+        <Metric label="一次性风险储备" value={financial.reserves.oneTimeReserves} />
       </div>
 
       <h2>三档对比</h2>
@@ -55,7 +56,7 @@ export function Report({ answers, tier, onBackToReview }: ReportProps) {
       <ol className="impact-list">
         {report.impactItems.map((item) => (
           <li key={item.category}>
-            {categoryLabels[item.category]}：{formatCurrency(item.annualCost)}/年
+            {item.label}：{formatCurrency(item.annualCost)}/年
           </li>
         ))}
       </ol>
@@ -64,6 +65,15 @@ export function Report({ answers, tier, onBackToReview }: ReportProps) {
         返回 Review
       </button>
     </section>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="metric-card">
+      <span>{label}</span>
+      <strong>{formatCurrency(value)}</strong>
+    </div>
   );
 }
 

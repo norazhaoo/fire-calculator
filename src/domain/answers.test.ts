@@ -13,25 +13,28 @@ it("creates editable default answers for the selected tier", () => {
     source: "default",
     editedInTier: "baseline"
   });
-  expect(answers.privateMedicalBudget).toBeUndefined();
+  expect(answers["income.fixed.monthly"]).toMatchObject({
+    value: 0,
+    source: "default"
+  });
 });
 
-it("inherits existing answers when upgrading", () => {
+it("inherits existing fact answers when upgrading", () => {
   const baseline = setAnswerValue(
     createDefaultAnswers("baseline"),
-    "dailyFoodBudget",
-    120,
+    "income.fixed.monthly",
+    12000,
     "baseline"
   );
 
   const upgraded = switchTier(baseline, "baseline", "abundant");
 
-  expect(upgraded.dailyFoodBudget).toMatchObject({
-    value: 120,
+  expect(upgraded["income.fixed.monthly"]).toMatchObject({
+    value: 12000,
     source: "inherited"
   });
-  expect(upgraded.privateMedicalBudget).toMatchObject({
-    value: 30000,
+  expect(upgraded["expense.daily.quickAnnual"]).toMatchObject({
+    value: 96000,
     source: "default"
   });
 });
@@ -39,42 +42,42 @@ it("inherits existing answers when upgrading", () => {
 it("derives lower-tier values when downgrading", () => {
   const abundant = setAnswerValue(
     createDefaultAnswers("abundant"),
-    "annualTravelBudget",
+    "expense.travel.quickAnnual",
     120000,
     "abundant"
   );
 
   const downgraded = switchTier(abundant, "abundant", "baseline");
 
-  expect(downgraded.annualTravelBudget).toMatchObject({
-    value: 15000,
+  expect(downgraded["expense.travel.quickAnnual"]).toMatchObject({
+    value: 8000,
     source: "derived"
   });
-  expect(getVisibleAnswers(downgraded, "baseline").privateMedicalBudget).toBeUndefined();
+  expect(getVisibleAnswers(downgraded, "baseline")["expense.travel.quickAnnual"]).toBeDefined();
 });
 
 it("preserves lower-tier user provenance across upgrade and downgrade", () => {
   const baseline = setAnswerValue(
     createDefaultAnswers("baseline"),
-    "dailyFoodBudget",
-    120,
+    "income.fixed.monthly",
+    12000,
     "baseline"
   );
 
   const abundant = switchTier(baseline, "baseline", "abundant");
   const returned = switchTier(abundant, "abundant", "baseline");
 
-  expect(returned.dailyFoodBudget).toMatchObject({
-    value: 120,
+  expect(returned["income.fixed.monthly"]).toMatchObject({
+    value: 12000,
     source: "user",
     editedInTier: "baseline"
   });
 });
 
-it("preserves abundant-only user provenance across downgrade and upgrade", () => {
+it("preserves abundant-tier lifestyle provenance across downgrade and upgrade", () => {
   const abundant = setAnswerValue(
     createDefaultAnswers("abundant"),
-    "privateMedicalBudget",
+    "expense.medical.privateMedicalAnnual",
     80000,
     "abundant"
   );
@@ -82,7 +85,7 @@ it("preserves abundant-only user provenance across downgrade and upgrade", () =>
   const baseline = switchTier(abundant, "abundant", "baseline");
   const returned = switchTier(baseline, "baseline", "abundant");
 
-  expect(returned.privateMedicalBudget).toMatchObject({
+  expect(returned["expense.medical.privateMedicalAnnual"]).toMatchObject({
     value: 80000,
     source: "user",
     editedInTier: "abundant"
@@ -92,7 +95,7 @@ it("preserves abundant-only user provenance across downgrade and upgrade", () =>
 it("preserves shared higher-tier user provenance across downgrade and upgrade", () => {
   const abundant = setAnswerValue(
     createDefaultAnswers("abundant"),
-    "parentsSupportAnnual",
+    "expense.family.parentsSupportMonthly",
     88000,
     "abundant"
   );
@@ -100,7 +103,7 @@ it("preserves shared higher-tier user provenance across downgrade and upgrade", 
   const safe = switchTier(abundant, "abundant", "safe");
   const returned = switchTier(safe, "safe", "abundant");
 
-  expect(returned.parentsSupportAnnual).toMatchObject({
+  expect(returned["expense.family.parentsSupportMonthly"]).toMatchObject({
     value: 88000,
     source: "user",
     editedInTier: "abundant"

@@ -1,61 +1,53 @@
 # FIRE Calculator
 
-FIRE Calculator is a planned personal finance tool for estimating the path to
-financial independence and early retirement. FIRE stands for Financial
-Independence, Retire Early.
+FIRE Calculator is a lifestyle-first calculator for estimating financial
+independence and early retirement. The app is aimed at Chinese users who want to
+describe income, assets, and real-life spending instead of starting from finance
+jargon.
 
-The goal is to help users answer practical questions:
+## Product Shape
 
-- How much money do I need before I can retire?
-- How many years might it take to reach that number?
-- How do savings rate, expenses, investment return, inflation, and withdrawal
-  rate change the result?
-- What monthly contribution would close the gap faster?
+Users choose one scenario first:
 
-## MVP Scope
+- `保底版`: necessary life, faster freedom, fewer upgrades.
+- `安全版`: stable life with medical, family, and education buffers.
+- `富足版`: wider choice set for travel, healthcare, education, and family support.
 
-The first version should focus on a clear calculator experience:
+The calculator then collects inputs in separate sections:
 
-- Annual income
-- Annual expenses
-- Current invested assets
-- Monthly or annual contributions
-- Expected annual investment return
-- Expected annual inflation
-- Safe withdrawal rate
-- Target FIRE number
-- Estimated years to FIRE
+- Income: fixed salary, bonus, part-time work, business income, rent, investment
+  cash flow, and other income. Each source can be marked as continuing after
+  FIRE. The page starts with income source cards, then opens one source at a
+  time for detail entry.
+- Assets and investment: cash, low-risk assets, medium-risk assets, high-risk
+  assets, home, and investment property. Each bucket has amount, expected return,
+  and whether it counts toward FIRE assets. The overview keeps the asset page
+  scannable before users drill into each bucket.
+- Expenses: each category supports a quick estimate or expanded itemized
+  details. Every amount can be entered as daily, weekly, monthly, or annual and
+  is annualized by the model. Categories include daily life, housing, transport,
+  entertainment, travel, large purchases, medical, family responsibility,
+  children, and buffer.
+- Review: current expenses default to FIRE-after expenses, but each category can
+  be adjusted for retirement differences.
 
-## Core Ideas
+Every input has helper copy explaining what the field means, so users do not
+need to understand finance terms before trying an estimate.
 
-The calculator can start with a simple model:
+## Calculation Model
 
-- FIRE number = annual expenses / safe withdrawal rate
-- Annual portfolio growth = current assets and future contributions compounded
-  by expected return
-- Real return can be estimated by adjusting nominal return for inflation
-- Years to FIRE is the first year where projected assets meet or exceed the
-  FIRE number
+Inputs are separated for usability, but calculation is linked:
 
-The model should be transparent. Users should be able to see the assumptions
-behind the result instead of treating the number as a black box.
+```text
+Annual contribution = max(0, pre-FIRE annual income - pre-FIRE annual expense)
+Net FIRE expense = max(0, FIRE-after annual expense - FIRE-after continuing income)
+FIRE target = net FIRE expense / safe withdrawal rate + one-time reserves
+Years to FIRE = current investable assets + annual contribution + portfolio growth
+```
 
-## Future Features
-
-Possible additions after the MVP:
-
-- Coast FIRE, Lean FIRE, Fat FIRE, and Barista FIRE scenarios
-- Year-by-year projection table
-- Chart of projected net worth over time
-- Currency and locale settings
-- Scenario comparison
-- Tax and account-type assumptions
-- Saved plans
-
-## Development Notes
-
-No application stack has been chosen yet. Keep the first implementation small,
-testable, and focused on the calculation model before expanding the interface.
+Investment return is weighted from included asset buckets. One-time reserves
+cover emergency months, major illness and recovery, parent care, and child
+education reserves.
 
 ## Local Development
 

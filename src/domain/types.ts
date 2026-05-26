@@ -2,18 +2,29 @@ export type ScenarioTier = "baseline" | "safe" | "abundant";
 
 export type AnswerSource = "user" | "inherited" | "derived" | "default";
 
-export type QuestionCategory =
-  | "basics"
-  | "dailyLife"
+export type QuestionSection = "profile" | "income" | "assets" | "expenses" | "reserves" | "review";
+
+export type QuestionCategory = QuestionSection;
+
+export type ExpenseCategoryId =
+  | "daily"
   | "housing"
   | "transport"
+  | "entertainment"
   | "travel"
   | "largePurchases"
-  | "children"
+  | "medical"
   | "family"
-  | "medical";
+  | "children"
+  | "buffer";
 
 export type QuestionInputType = "number" | "select" | "boolean";
+
+export type QuestionDefaultValue =
+  | number
+  | string
+  | boolean
+  | Partial<Record<ScenarioTier, number | string | boolean>>;
 
 export interface SelectOption {
   value: string;
@@ -24,12 +35,16 @@ export interface Question {
   id: string;
   label: string;
   category: QuestionCategory;
+  section?: QuestionSection;
   inputType: QuestionInputType;
   unit?: "yuan" | "percent" | "years" | "count";
   tiers: readonly ScenarioTier[];
-  defaultValue: number | string | boolean;
+  defaultValue: QuestionDefaultValue;
   options?: readonly SelectOption[];
   helperText?: string;
+  groupId?: string;
+  behavior?: "fact" | "tiered";
+  hiddenFromQuestionnaire?: boolean;
 }
 
 export interface Answer {

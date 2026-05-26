@@ -1,50 +1,31 @@
-import { getQuestionsForTier, questions } from "./questions";
+import { getQuestionDefaultValue, getQuestionsForTier, questions } from "./questions";
 import { isDowngrade, isUpgrade } from "./tiers";
 import type { Answer, AnswerMap, AnswerSnapshot, ScenarioTier } from "./types";
 
 const questionById = new Map(questions.map((question) => [question.id, question]));
 
-const derivedFallbacks: Record<string, Partial<Record<ScenarioTier, number | string | boolean>>> = {
-  annualTravelBudget: {
-    baseline: 15000,
-    safe: 45000
-  },
-  basicMedicalBuffer: {
-    baseline: 200000,
-    safe: 600000
-  },
-  childrenEducationTrack: {
-    baseline: "public",
-    safe: "private"
-  },
-  privateMedicalBudget: {
-    baseline: 0,
-    safe: 0
-  },
-  lifestyleUpgradeAnnual: {
-    baseline: 0,
-    safe: 24000
-  }
-};
-
 export function createDefaultAnswers(tier: ScenarioTier): AnswerMap {
   return Object.fromEntries(
-    getQuestionsForTier(tier).map((question) => [
-      question.id,
-      {
+    getQuestionsForTier(tier).map((question) => {
+      const defaultValue = getQuestionDefaultValue(question, tier);
+
+      return [
+        question.id,
+        {
         questionId: question.id,
-        value: question.defaultValue,
+        value: defaultValue,
         source: "default",
         editedInTier: tier,
         history: {
           [tier]: {
-            value: question.defaultValue,
+            value: defaultValue,
             source: "default",
             editedInTier: tier
           }
         }
       }
-    ])
+      ];
+    })
   );
 }
 
@@ -108,9 +89,30 @@ function upgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
     const existing = answers[question.id];
     const history = existing ? saveCurrentSnapshot(existing).history : {};
     const targetSnapshot = history?.[toTier];
+    const defaultValue = getQuestionDefaultValue(question, toTier);
 
     if (targetSnapshot) {
       next[question.id] = answerFromSnapshot(question.id, targetSnapshot, history);
+    } else if (
+      existing &&
+      question.behavior === "tiered" &&
+      existing.source === "default" &&
+      existing.editedInTier !== toTier
+    ) {
+      next[question.id] = {
+        questionId: question.id,
+        value: defaultValue,
+        source: "default",
+        editedInTier: toTier,
+        history: {
+          ...history,
+          [toTier]: {
+            value: defaultValue,
+            source: "default",
+            editedInTier: toTier
+          }
+        }
+      };
     } else if (existing) {
       next[question.id] = {
         ...existing,
@@ -123,12 +125,12 @@ function upgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
     } else {
       next[question.id] = {
         questionId: question.id,
-        value: question.defaultValue,
+        value: defaultValue,
         source: "default",
         editedInTier: toTier,
         history: {
           [toTier]: {
-            value: question.defaultValue,
+            value: defaultValue,
             source: "default",
             editedInTier: toTier
           }
@@ -144,19 +146,28 @@ function downgradeAnswers(answers: AnswerMap, toTier: ScenarioTier): AnswerMap {
   const next = { ...answers };
 
   for (const question of getQuestionsForTier(toTier)) {
-    const fallback = derivedFallbacks[question.id]?.[toTier];
     const existing = answers[question.id];
     const history = existing ? saveCurrentSnapshot(existing).history : {};
     const targetSnapshot = history?.[toTier];
+    const defaultValue = getQuestionDefaultValue(question, toTier);
 
     if (targetSnapshot) {
       next[question.id] = answerFromSnapshot(question.id, targetSnapshot, history);
       continue;
     }
 
+    if (existing && question.behavior === "fact") {
+      next[question.id] = {
+        ...existing,
+        source: existing.source === "user" ? "user" : "derived",
+        history
+      };
+      continue;
+    }
+
     const derivedAnswer: Answer = {
       questionId: question.id,
-      value: fallback ?? existing?.value ?? question.defaultValue,
+      value: defaultValue,
       source: "derived",
       editedInTier: toTier,
       history

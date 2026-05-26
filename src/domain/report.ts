@@ -1,12 +1,13 @@
 import { createDefaultAnswers, getVisibleAnswers } from "./answers";
 import { calculateFireResult, type FireResult } from "./fire";
-import { buildLifestyleModel, type LifestyleModel } from "./lifestyleModel";
+import { buildFinancialModel, type FinancialModel } from "./financialModel";
+import { questions } from "./questions";
 import { tierOrder } from "./tiers";
-import type { AnswerMap, QuestionCategory, ScenarioTier } from "./types";
+import type { AnswerMap, ExpenseCategoryId, ScenarioTier } from "./types";
 
 export interface TierReport {
   tier: ScenarioTier;
-  lifestyle: LifestyleModel;
+  financial: FinancialModel;
   fire: FireResult;
 }
 
@@ -14,47 +15,83 @@ export interface Report {
   selectedTier: ScenarioTier;
   selected: TierReport;
   comparison: TierReport[];
-  impactItems: { category: QuestionCategory; annualCost: number }[];
+  impactItems: { category: ExpenseCategoryId; label: string; annualCost: number }[];
+  cashflowWarning: string | null;
 }
 
+const questionById = new Map(questions.map((question) => [question.id, question]));
+
 export function buildReport(answers: AnswerMap, selectedTier: ScenarioTier): Report {
-  const comparison = tierOrder.map((tier) =>
-    buildTierReport({ ...createDefaultAnswers(tier), ...getVisibleAnswers(answers, tier) }, tier)
-  );
+  const comparison = tierOrder.map((tier) => buildTierReport(answersForTier(answers, tier), tier));
   const selected = comparison.find((row) => row.tier === selectedTier) ?? comparison[0];
-  const impactItems = Object.entries(selected.lifestyle.categories)
-    .map(([category, annualCost]) => ({ category: category as QuestionCategory, annualCost }))
+  const impactItems = Object.values(selected.financial.expenses.categories)
+    .map((category) => ({
+      category: category.id,
+      label: category.label,
+      annualCost: category.retirementAnnual
+    }))
     .filter((item) => item.annualCost > 0)
     .sort((a, b) => b.annualCost - a.annualCost)
     .slice(0, 5);
+  const cashflowWarning =
+    selected.financial.annualContribution <= 0
+      ? "按当前收入和支出，年度可投资结余为 0，FIRE 时间主要依赖已有资产增长。"
+      : null;
 
   return {
     selectedTier,
     selected,
     comparison,
-    impactItems
+    impactItems,
+    cashflowWarning
   };
 }
 
 function buildTierReport(answers: AnswerMap, tier: ScenarioTier): TierReport {
-  const lifestyle = buildLifestyleModel(answers, tier);
+  const financial = buildFinancialModel(answers, tier);
 
   return {
     tier,
-    lifestyle,
+    financial,
     fire: calculateFireResult({
       currentAge: numberAnswer(answers, "currentAge"),
-      currentAssets: numberAnswer(answers, "currentAssets"),
-      monthlyInvestment: numberAnswer(answers, "monthlyInvestment"),
-      expectedReturnRate: numberAnswer(answers, "expectedReturnRate"),
+      currentAssets: financial.assets.investableAssets,
+      annualContribution: financial.annualContribution,
+      expectedReturnRate: financial.assets.expectedReturnRate,
       withdrawalRate: numberAnswer(answers, "withdrawalRate"),
-      totalAnnualExpense: lifestyle.totalAnnualExpense
+      netAnnualFireExpense: financial.netAnnualFireExpense,
+      oneTimeReserves: financial.reserves.oneTimeReserves
     })
+  };
+}
+
+function answersForTier(sourceAnswers: AnswerMap, tier: ScenarioTier): AnswerMap {
+  const defaults = createDefaultAnswers(tier);
+  const visibleAnswers = getVisibleAnswers(sourceAnswers, tier);
+  const overlays = Object.fromEntries(
+    Object.entries(visibleAnswers).filter(([questionId, answer]) => {
+      const question = questionById.get(questionId);
+
+      if (!question) {
+        return false;
+      }
+
+      if (question.behavior === "fact" && answer.source === "user") {
+        return true;
+      }
+
+      return answer.editedInTier === tier && answer.source === "user";
+    })
+  );
+
+  return {
+    ...defaults,
+    ...overlays
   };
 }
 
 function numberAnswer(answers: AnswerMap, questionId: string) {
   const value = answers[questionId]?.value;
 
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
 }

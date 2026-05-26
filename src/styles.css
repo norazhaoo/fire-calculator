@@ -28,14 +28,17 @@ select {
 }
 
 .tier-grid,
-.comparison-grid {
+.comparison-grid,
+.overview-grid {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .tier-card,
+.overview-card,
 .comparison-card,
+.detail-panel,
 .summary-panel,
 .review-row {
   border: 1px solid #d8d1c3;
@@ -44,15 +47,53 @@ select {
   padding: 16px;
 }
 
-.tier-card {
+.tier-card,
+.overview-card {
   cursor: pointer;
   display: grid;
   gap: 8px;
   text-align: left;
 }
 
+.overview-card span,
+.overview-card small,
+.overview-card em {
+  color: #5f665f;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.overview-card em {
+  color: #223f29;
+  font-weight: 700;
+}
+
+.detail-panel {
+  margin: 24px 0;
+}
+
+.detail-panel h2 {
+  margin-top: 0;
+}
+
+.detail-fields,
+.itemized-stack {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.item-row {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+}
+
 .form-grid,
-.review-list {
+.review-list,
+.expense-stack,
+.metric-grid {
   display: grid;
   gap: 14px;
   margin: 24px 0;
@@ -62,9 +103,67 @@ select {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.compact-grid {
+  margin: 14px 0 0;
+}
+
+.expense-stack {
+  grid-template-columns: 1fr;
+}
+
+.expense-card {
+  border: 1px solid #d8d1c3;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 16px;
+}
+
+.expense-card-header {
+  align-items: end;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr minmax(220px, 320px);
+}
+
+.expense-card h2,
+.comparison-card h3 {
+  margin-top: 0;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-card,
+.review-field {
+  border: 1px solid #d8d1c3;
+  border-radius: 8px;
+  background: #fffdf8;
+  padding: 14px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 8px;
+}
+
+.metric-card strong {
+  font-size: 1.15rem;
+}
+
 .form-field {
   display: grid;
   gap: 6px;
+}
+
+.form-field label {
+  display: grid;
+  gap: 6px;
+}
+
+.form-field small {
+  color: #667064;
+  line-height: 1.45;
 }
 
 .form-field input,
@@ -78,13 +177,14 @@ select {
 .checkbox-field {
   align-items: center;
   display: flex;
+  gap: 8px;
 }
 
 .review-row {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr minmax(220px, 320px) auto;
 }
 
 .source-pill {
@@ -118,6 +218,16 @@ button {
   line-height: 1.8;
 }
 
+.section-copy,
+.muted {
+  color: #5f665f;
+}
+
+.warning-text {
+  color: #8a4b00;
+  font-weight: 600;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 20px;
@@ -125,8 +235,12 @@ button {
 
   .tier-grid,
   .comparison-grid,
+  .overview-grid,
   .form-grid,
-  .review-row {
+  .item-row,
+  .review-row,
+  .expense-card-header,
+  .metric-grid {
     grid-template-columns: 1fr;
   }
 }

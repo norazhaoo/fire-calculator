@@ -10,29 +10,35 @@ interface FormFieldProps {
 export function FormField({ question, value, onChange }: FormFieldProps) {
   if (question.inputType === "select") {
     return (
-      <label className="form-field">
-        <span>{question.label}</span>
-        <select value={String(value)} onChange={(event) => onChange(event.target.value)}>
-          {question.options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="form-field">
+        <label>
+          <span>{question.label}</span>
+          <select value={String(value)} onChange={(event) => onChange(event.target.value)}>
+            {question.options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {question.helperText ? <small>{question.helperText}</small> : null}
+      </div>
     );
   }
 
   if (question.inputType === "boolean") {
     return (
-      <label className="form-field checkbox-field">
-        <input
-          checked={Boolean(value)}
-          type="checkbox"
-          onChange={(event) => onChange(event.target.checked)}
-        />
-        <span>{question.label}</span>
-      </label>
+      <div className="form-field">
+        <label className="checkbox-field">
+          <input
+            checked={Boolean(value)}
+            type="checkbox"
+            onChange={(event) => onChange(event.target.checked)}
+          />
+          <span>{question.label}</span>
+        </label>
+        {question.helperText ? <small>{question.helperText}</small> : null}
+      </div>
     );
   }
 
@@ -74,23 +80,26 @@ function NumberField({ question, value, onChange }: FormFieldProps) {
   }
 
   return (
-    <label className="form-field">
-      <span>{question.label}</span>
-      <input
-        inputMode="decimal"
-        type="number"
-        value={draft}
-        onBlur={() => {
-          setIsEditing(false);
-          commitAndNormalizeDraft();
-        }}
-        onChange={(event) => {
-          const nextDraft = event.target.value;
-          setDraft(nextDraft);
-          commitDraft(nextDraft);
-        }}
-        onFocus={() => setIsEditing(true)}
-      />
-    </label>
+    <div className="form-field">
+      <label>
+        <span>{question.label}</span>
+        <input
+          inputMode="decimal"
+          type="number"
+          value={draft}
+          onBlur={() => {
+            setIsEditing(false);
+            commitAndNormalizeDraft();
+          }}
+          onChange={(event) => {
+            const nextDraft = event.target.value;
+            setDraft(nextDraft);
+            commitDraft(nextDraft);
+          }}
+          onFocus={() => setIsEditing(true)}
+        />
+      </label>
+      {question.helperText ? <small>{question.helperText}</small> : null}
+    </div>
   );
 }

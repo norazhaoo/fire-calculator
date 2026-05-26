@@ -4,13 +4,14 @@ it("calculates target assets from annual expense and withdrawal rate", () => {
   const result = calculateFireResult({
     currentAge: 30,
     currentAssets: 800000,
-    monthlyInvestment: 20000,
+    annualContribution: 240000,
     expectedReturnRate: 4.5,
     withdrawalRate: 3.5,
-    totalAnnualExpense: 300000
+    netAnnualFireExpense: 300000,
+    oneTimeReserves: 500000
   });
 
-  expect(result.targetAssets).toBeCloseTo(8571428.57, 1);
+  expect(result.targetAssets).toBeCloseTo(9071428.57, 1);
   expect(result.yearsToFire).toBeGreaterThan(0);
   expect(result.fireAge).toBeGreaterThan(30);
 });
@@ -19,10 +20,11 @@ it("marks impossible timelines when no contribution and no growth can close the 
   const result = calculateFireResult({
     currentAge: 30,
     currentAssets: 0,
-    monthlyInvestment: 0,
+    annualContribution: 0,
     expectedReturnRate: 0,
     withdrawalRate: 4,
-    totalAnnualExpense: 200000
+    netAnnualFireExpense: 200000,
+    oneTimeReserves: 0
   });
 
   expect(result.yearsToFire).toBeNull();
@@ -33,10 +35,11 @@ it("returns immediate FIRE when current assets already meet the target", () => {
   const result = calculateFireResult({
     currentAge: 42,
     currentAssets: 1000000,
-    monthlyInvestment: 0,
+    annualContribution: 0,
     expectedReturnRate: 0,
     withdrawalRate: 4,
-    totalAnnualExpense: 40000
+    netAnnualFireExpense: 40000,
+    oneTimeReserves: 0
   });
 
   expect(result.targetAssets).toBe(1000000);
@@ -49,10 +52,11 @@ it("returns invalid FIRE timeline when withdrawal rate is not positive", () => {
   const result = calculateFireResult({
     currentAge: 30,
     currentAssets: 1000000,
-    monthlyInvestment: 10000,
+    annualContribution: 120000,
     expectedReturnRate: 4,
     withdrawalRate: 0,
-    totalAnnualExpense: 200000
+    netAnnualFireExpense: 200000,
+    oneTimeReserves: 0
   });
 
   expect(result.targetAssets).toBe(Number.POSITIVE_INFINITY);
@@ -65,10 +69,11 @@ it("calculates first projection row math", () => {
   const result = calculateFireResult({
     currentAge: 40,
     currentAssets: 100,
-    monthlyInvestment: 10,
+    annualContribution: 120,
     expectedReturnRate: 10,
     withdrawalRate: 4,
-    totalAnnualExpense: 1000,
+    netAnnualFireExpense: 1000,
+    oneTimeReserves: 0,
     maxYears: 1
   });
 
@@ -82,14 +87,15 @@ it("calculates first projection row math", () => {
   });
 });
 
-it("clamps negative monthly investment to zero without reducing assets", () => {
+it("clamps negative annual contribution to zero without reducing assets", () => {
   const result = calculateFireResult({
     currentAge: 30,
     currentAssets: 1000,
-    monthlyInvestment: -100,
+    annualContribution: -100,
     expectedReturnRate: 0,
     withdrawalRate: 4,
-    totalAnnualExpense: 100000,
+    netAnnualFireExpense: 100000,
+    oneTimeReserves: 0,
     maxYears: 1
   });
 
@@ -101,10 +107,11 @@ it("normalizes non-finite values where calculation can continue", () => {
   const result = calculateFireResult({
     currentAge: Number.NaN,
     currentAssets: Number.NaN,
-    monthlyInvestment: Number.POSITIVE_INFINITY,
+    annualContribution: Number.POSITIVE_INFINITY,
     expectedReturnRate: Number.NaN,
     withdrawalRate: 4,
-    totalAnnualExpense: 1000,
+    netAnnualFireExpense: 1000,
+    oneTimeReserves: Number.NaN,
     maxYears: Number.NaN
   });
 

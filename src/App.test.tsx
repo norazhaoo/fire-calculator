@@ -11,78 +11,114 @@ it("starts with tier selection before the questionnaire", () => {
   expect(screen.getByRole("button", { name: /富足版/ })).toBeInTheDocument();
 });
 
-it("selects a tier and opens the questionnaire", async () => {
+it("selects a tier and opens the income step", async () => {
   const user = userEvent.setup();
   render(<App />);
 
   await user.click(screen.getByRole("button", { name: /安全版/ }));
 
-  expect(screen.getByRole("heading", { name: "安全版生活问卷" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "收入" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /固定工资/ })).toBeInTheDocument();
 });
 
-it("allows users to answer visible questionnaire fields", async () => {
+it("opens category detail cards, explains fields, and returns to the overview", async () => {
   const user = userEvent.setup();
   render(<App />);
 
   await user.click(screen.getByRole("button", { name: /安全版/ }));
-  const foodInput = screen.getByLabelText("每天吃饭预算");
+  await user.click(screen.getByRole("button", { name: /固定工资/ }));
 
-  await user.clear(foodInput);
-  expect(foodInput).toHaveValue(null);
+  const salaryInput = screen.getByLabelText("固定工资（每月）");
+  expect(screen.getAllByText(/稳定工作的税后月收入/).length).toBeGreaterThan(0);
 
-  await user.type(foodInput, "120");
+  await user.clear(salaryInput);
+  expect(salaryInput).toHaveValue(null);
 
-  expect(foodInput).toHaveValue(120);
-  expect(screen.getByRole("button", { name: "Review 假设" })).toBeInTheDocument();
+  await user.type(salaryInput, "30000");
+  expect(salaryInput).toHaveValue(30000);
+  await user.click(screen.getByRole("button", { name: "返回大类" }));
+  expect(screen.getByRole("button", { name: /固定工资/ })).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: /现金\/活期/ }));
+  expect(screen.getAllByText(/随时可用、波动很低的钱/).length).toBeGreaterThan(0);
+  await user.click(screen.getByRole("button", { name: "返回大类" }));
+
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: /日常吃喝用/ }));
+
+  const dailyExpenseInput = screen.getByLabelText("日常吃喝用估算金额");
+  expect(screen.getByLabelText("日常吃喝用金额周期")).toBeInTheDocument();
+  await user.clear(dailyExpenseInput);
+  await user.type(dailyExpenseInput, "72000");
+
+  expect(dailyExpenseInput).toHaveValue(72000);
 });
 
-it("shows answer sources on the review page", async () => {
+it("shows sources and FIRE-after expense adjustments on the review page", async () => {
   const user = userEvent.setup();
   render(<App />);
 
-  await user.click(screen.getByRole("button", { name: /安全版/ }));
-  await user.click(screen.getByRole("button", { name: "Review 假设" }));
+  await openReview(user, /安全版/);
 
   expect(screen.getByRole("heading", { name: "安全版 Review" })).toBeInTheDocument();
   expect(screen.getByRole("group", { name: "切换版本" })).toBeInTheDocument();
+  expect(screen.getByText("FIRE 后支出调整")).toBeInTheDocument();
   expect(screen.getAllByText("default").length).toBeGreaterThan(0);
   expect(screen.getByRole("button", { name: "生成报告" })).toBeInTheDocument();
 });
 
-it("generates a report with selected tier and three-tier comparison", async () => {
+it("generates a report with cashflow metrics and three-tier comparison", async () => {
   const user = userEvent.setup();
   render(<App />);
 
-  await user.click(screen.getByRole("button", { name: /安全版/ }));
-  await user.click(screen.getByRole("button", { name: "Review 假设" }));
+  await openReview(user, /安全版/);
   await user.click(screen.getByRole("button", { name: "生成报告" }));
 
   expect(screen.getByRole("heading", { name: "你的 FIRE 估算" })).toBeInTheDocument();
   expect(screen.getByText("主版本：安全版")).toBeInTheDocument();
+  expect(screen.getByText("年度可投资结余")).toBeInTheDocument();
+  expect(screen.getByText("FIRE 后持续收入")).toBeInTheDocument();
   expect(screen.getByText("三档对比")).toBeInTheDocument();
   expect(screen.getByText("最大影响项")).toBeInTheDocument();
 });
 
-it("inherits answers when upgrading from baseline to abundant", async () => {
+it("inherits fact answers when upgrading from baseline to abundant", async () => {
   const user = userEvent.setup();
   render(<App />);
 
   await user.click(screen.getByRole("button", { name: /保底版/ }));
-  await user.click(screen.getByRole("button", { name: "Review 假设" }));
+  await user.click(screen.getByRole("button", { name: /固定工资/ }));
+  const salaryInput = screen.getByLabelText("固定工资（每月）");
+  await user.clear(salaryInput);
+  await user.type(salaryInput, "12000");
+  await user.click(screen.getByRole("button", { name: "返回大类" }));
+  await continueToReview(user);
   await user.click(screen.getByRole("button", { name: "切换到富足版" }));
 
-  expect(screen.getByRole("heading", { name: "富足版生活问卷" })).toBeInTheDocument();
-  expect(screen.getByLabelText("私立医疗或跨城就医预算")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "收入" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /固定工资/ }));
+  expect(screen.getByLabelText("固定工资（每月）")).toHaveValue(12000);
 });
 
 it("goes directly to review when downgrading from abundant to baseline", async () => {
   const user = userEvent.setup();
   render(<App />);
 
-  await user.click(screen.getByRole("button", { name: /富足版/ }));
-  await user.click(screen.getByRole("button", { name: "Review 假设" }));
+  await openReview(user, /富足版/);
   await user.click(screen.getByRole("button", { name: "切换到保底版" }));
 
   expect(screen.getByRole("heading", { name: "保底版 Review" })).toBeInTheDocument();
   expect(screen.getAllByText("derived").length).toBeGreaterThan(0);
 });
+
+async function openReview(user: ReturnType<typeof userEvent.setup>, tierButtonName: RegExp) {
+  await user.click(screen.getByRole("button", { name: tierButtonName }));
+  await continueToReview(user);
+}
+
+async function continueToReview(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+  await user.click(screen.getByRole("button", { name: "下一步" }));
+}

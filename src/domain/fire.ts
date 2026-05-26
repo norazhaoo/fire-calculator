@@ -1,10 +1,11 @@
 export interface FireCalculationInput {
   currentAge: number;
   currentAssets: number;
-  monthlyInvestment: number;
+  annualContribution: number;
   expectedReturnRate: number;
   withdrawalRate: number;
-  totalAnnualExpense: number;
+  netAnnualFireExpense: number;
+  oneTimeReserves: number;
   maxYears?: number;
 }
 
@@ -27,10 +28,11 @@ export interface FireResult {
 export function calculateFireResult(input: FireCalculationInput): FireResult {
   const currentAge = finiteNonNegative(input.currentAge);
   const currentAssets = finiteNonNegative(input.currentAssets);
-  const monthlyInvestment = finiteNonNegative(input.monthlyInvestment);
+  const annualContribution = finiteNonNegative(input.annualContribution);
   const expectedReturnRate = finiteNumber(input.expectedReturnRate);
   const withdrawalRate = finiteNumber(input.withdrawalRate);
-  const totalAnnualExpense = finiteNonNegative(input.totalAnnualExpense);
+  const netAnnualFireExpense = finiteNonNegative(input.netAnnualFireExpense);
+  const oneTimeReserves = finiteNonNegative(input.oneTimeReserves);
   const maxYears = positiveInteger(input.maxYears, 80);
 
   if (withdrawalRate <= 0) {
@@ -42,8 +44,7 @@ export function calculateFireResult(input: FireCalculationInput): FireResult {
     };
   }
 
-  const targetAssets = totalAnnualExpense / (withdrawalRate / 100);
-  const annualContribution = monthlyInvestment * 12;
+  const targetAssets = netAnnualFireExpense / (withdrawalRate / 100) + oneTimeReserves;
   const annualReturn = expectedReturnRate / 100;
   const projection: ProjectionRow[] = [];
   let assets = currentAssets;

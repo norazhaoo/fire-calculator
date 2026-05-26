@@ -1,21 +1,32 @@
-import { getQuestionsForTier, questions } from "./questions";
+import { getQuestionDefaultValue, getQuestionsForSection, getQuestionsForTier, questions } from "./questions";
 
-it("shows baseline questions for every tier", () => {
+it("shows core income, asset, and expense questions for every tier", () => {
   const safeQuestionIds = getQuestionsForTier("safe").map((question) => question.id);
 
   expect(safeQuestionIds).toContain("currentAge");
-  expect(safeQuestionIds).toContain("dailyFoodBudget");
-  expect(safeQuestionIds).toContain("basicMedicalBuffer");
+  expect(safeQuestionIds).toContain("income.fixed.monthly");
+  expect(safeQuestionIds).toContain("asset.cash.value");
+  expect(safeQuestionIds).toContain("expense.daily.quickAnnual");
+  expect(safeQuestionIds).toContain("reserve.majorMedical");
 });
 
-it("adds abundant-only questions only for abundant tier", () => {
-  const baselineQuestionIds = getQuestionsForTier("baseline").map((question) => question.id);
-  const safeQuestionIds = getQuestionsForTier("safe").map((question) => question.id);
-  const abundantQuestionIds = getQuestionsForTier("abundant").map((question) => question.id);
+it("uses tier-specific defaults for lifestyle expense questions", () => {
+  const dailyQuick = questions.find((question) => question.id === "expense.daily.quickAnnual");
 
-  expect(baselineQuestionIds).not.toContain("privateMedicalBudget");
-  expect(safeQuestionIds).not.toContain("privateMedicalBudget");
-  expect(abundantQuestionIds).toContain("privateMedicalBudget");
+  expect(dailyQuick).toBeDefined();
+  expect(getQuestionDefaultValue(dailyQuick!, "baseline")).toBe(36000);
+  expect(getQuestionDefaultValue(dailyQuick!, "safe")).toBe(60000);
+  expect(getQuestionDefaultValue(dailyQuick!, "abundant")).toBe(96000);
+});
+
+it("filters questionnaire fields by section", () => {
+  const incomeQuestionIds = getQuestionsForSection("safe", "income").map((question) => question.id);
+  const expenseQuestionIds = getQuestionsForSection("safe", "expenses").map((question) => question.id);
+
+  expect(incomeQuestionIds).toContain("income.fixed.monthly");
+  expect(incomeQuestionIds).not.toContain("expense.daily.quickAnnual");
+  expect(expenseQuestionIds).toContain("expense.daily.quickAnnual");
+  expect(expenseQuestionIds).not.toContain("expense.daily.retirementAnnual");
 });
 
 it("keeps question IDs unique", () => {
@@ -37,8 +48,10 @@ it("uses default values present in select question options", () => {
   const selectQuestions = questions.filter((question) => question.inputType === "select");
 
   expect(
-    selectQuestions.every((question) =>
-      question.options?.some((option) => option.value === question.defaultValue)
-    )
+    selectQuestions.every((question) => {
+      const defaultValue = getQuestionDefaultValue(question, "safe");
+
+      return question.options?.some((option) => option.value === defaultValue);
+    })
   ).toBe(true);
 });
