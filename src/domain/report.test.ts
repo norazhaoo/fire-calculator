@@ -39,8 +39,7 @@ it("feeds income, current expenses, assets, and reserves into the selected FIRE 
   const answers = setAnswers(emptyScenario("safe"), "safe", [
     ["income.fixed.monthly", 30000],
     ["expense.daily.quickAnnual", 120000],
-    ["asset.cash.value", 1000000],
-    ["asset.cash.returnRate", 0],
+    ["asset.deposit.value", 1000000],
     ["withdrawalRate", 4]
   ]);
 
@@ -49,6 +48,20 @@ it("feeds income, current expenses, assets, and reserves into the selected FIRE 
   expect(report.selected.financial.annualContribution).toBe(240000);
   expect(report.selected.fire.targetAssets).toBe(3000000);
   expect(report.selected.fire.yearsToFire).toBeGreaterThan(0);
+});
+
+it("adds a property note when property count and value are recorded", () => {
+  const answers = setAnswers(emptyScenario("safe"), "safe", [
+    ["asset.property.count", 2],
+    ["asset.property.estimatedValue", 4200000]
+  ]);
+
+  const report = buildReport(answers, "safe");
+
+  expect(report.propertyNote).toBe(
+    "已记录房产 2 套，估值 ¥4,200,000，未计入 FIRE 可投资资产；如果未来出租或出售，可以再做高级版估算。"
+  );
+  expect(report.selected.financial.assets.investableAssets).toBe(0);
 });
 
 function emptyScenario(tier: ScenarioTier) {

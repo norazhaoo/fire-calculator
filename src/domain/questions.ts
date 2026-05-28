@@ -1,8 +1,9 @@
 import {
-  assetBuckets,
+  assetEntries,
   expenseCategories,
   incomeSources,
   periodOptions,
+  propertyEstimatedValueQuestionId,
   reserveItems
 } from "./catalog";
 import { tierRank } from "./tiers";
@@ -65,46 +66,59 @@ export const questions: Question[] = [
       helperText: "勾选后，这笔收入会在 FIRE 后继续抵扣退休支出。"
     } satisfies Question
   ]),
-  ...assetBuckets.flatMap((bucket) => [
-    {
-      id: bucket.valueQuestionId,
-      label: `${bucket.label}金额`,
+  ...assetEntries.flatMap((entry) => {
+    const valueQuestion = {
+      id: entry.valueQuestionId,
+      label: entry.label,
       category: "assets",
       section: "assets",
       inputType: "number",
-      unit: "yuan",
+      unit: entry.unit,
       tiers: allTiers,
       defaultValue: 0,
       behavior: "fact",
-      groupId: bucket.id,
-      helperText: bucket.description
-    } satisfies Question,
-    {
-      id: bucket.returnRateQuestionId,
-      label: `${bucket.label}预期年化收益率`,
-      category: "assets",
-      section: "assets",
-      inputType: "number",
-      unit: "percent",
-      tiers: allTiers,
-      defaultValue: bucket.defaultReturnRate,
-      behavior: "fact",
-      groupId: bucket.id,
-      helperText: "用于模拟资产增长，不代表投资建议。"
-    } satisfies Question,
-    {
-      id: bucket.includeQuestionId,
-      label: `${bucket.label}计入 FIRE 资产`,
-      category: "assets",
-      section: "assets",
-      inputType: "boolean",
-      tiers: allTiers,
-      defaultValue: bucket.defaultIncluded,
-      behavior: "fact",
-      groupId: bucket.id,
-      helperText: "只有可变现或可持续用于生活的资产才建议计入。"
-    } satisfies Question
-  ]),
+      groupId: entry.id,
+      helperText: entry.description
+    } satisfies Question;
+
+    if (entry.id === "property") {
+      return [
+        valueQuestion,
+        {
+          id: propertyEstimatedValueQuestionId,
+          label: "房产估值",
+          category: "assets",
+          section: "assets",
+          inputType: "number",
+          unit: "yuan",
+          tiers: allTiers,
+          defaultValue: 0,
+          behavior: "fact",
+          groupId: entry.id,
+          helperText: "所有房产现在大概值多少钱；这里只做净资产展示，不默认算进 FIRE 可投资资产。"
+        } satisfies Question
+      ];
+    }
+
+    const returnLabel = entry.id === "deposit" ? "存款年化收益率" : "投资年化收益率";
+
+    return [
+      valueQuestion,
+      {
+        id: entry.returnRateQuestionId,
+        label: returnLabel,
+        category: "assets",
+        section: "assets",
+        inputType: "number",
+        unit: "percent",
+        tiers: allTiers,
+        defaultValue: entry.defaultReturnRate,
+        behavior: "fact",
+        groupId: entry.id,
+        helperText: "填你觉得长期比较可能的年化收益率；不确定就先用默认值。"
+      } satisfies Question
+    ];
+  }),
   ...expenseCategories.flatMap((category) => [
     {
       id: category.modeQuestionId,

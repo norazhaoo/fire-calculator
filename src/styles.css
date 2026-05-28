@@ -38,7 +38,8 @@ select {
 .home-card-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
+  justify-content: start;
   margin: 24px 0;
 }
 
@@ -100,6 +101,30 @@ select {
   gap: 12px;
 }
 
+.home-card.is-expanded {
+  grid-column: 1 / -1;
+}
+
+.home-card-header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.home-card-status {
+  color: #667064;
+  display: inline-block;
+  font-size: 0.92rem;
+  margin-top: 6px;
+}
+
+.home-card-editor {
+  border-top: 1px solid #e4dccd;
+  margin-top: 6px;
+  padding-top: 14px;
+}
+
 .home-card h2,
 .entry-card h2 {
   margin: 0;
@@ -131,10 +156,26 @@ select {
   margin-top: 18px;
 }
 
+.asset-entry-grid {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 320px));
+  justify-content: start;
+  margin-top: 18px;
+}
+
 .entry-card {
   display: grid;
   gap: 16px;
   grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.asset-entry-card {
+  align-content: start;
+  gap: 12px;
+  grid-template-columns: 1fr;
+  padding: 14px;
 }
 
 .paired-fields,
@@ -149,7 +190,18 @@ select {
 }
 
 .asset-fields {
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 180px) minmax(180px, 0.8fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.asset-simple-field {
+  align-self: start;
+}
+
+.asset-treatment {
+  border-left: 3px solid #b5c7a8;
+  color: #40522f;
+  margin: 10px 0 0;
+  padding-left: 10px;
 }
 
 .item-row {
@@ -315,10 +367,15 @@ button {
   .entry-card,
   .paired-fields,
   .asset-fields,
+  .asset-simple-field,
   .item-row,
   .review-row,
   .expense-card-header,
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .asset-entry-grid {
+    grid-template-columns: minmax(0, min(100%, 320px));
   }
 }

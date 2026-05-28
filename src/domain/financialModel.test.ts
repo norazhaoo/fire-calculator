@@ -1,5 +1,5 @@
 import { createDefaultAnswers, setAnswerValue } from "./answers";
-import { assetBuckets, expenseCategories, reserveItems } from "./catalog";
+import { assetEntries, expenseCategories, reserveItems } from "./catalog";
 import { buildFinancialModel } from "./financialModel";
 import type { AnswerMap, ScenarioTier } from "./types";
 
@@ -56,20 +56,23 @@ it("annualizes quick and itemized expense amounts from selected periods", () => 
   );
 });
 
-it("calculates investable assets and weighted return from included asset buckets", () => {
+it("calculates investable assets and weighted return from deposits and investments", () => {
   const answers = setAnswers(emptyScenario("safe"), "safe", [
-    ["asset.cash.value", 100000],
-    ["asset.cash.returnRate", 2],
-    ["asset.mediumRisk.value", 300000],
-    ["asset.mediumRisk.returnRate", 6],
-    ["asset.home.value", 1000000],
-    ["asset.home.include", false]
+    ["asset.deposit.value", 100000],
+    ["asset.deposit.returnRate", 3],
+    ["asset.investment.value", 200000],
+    ["asset.investment.returnRate", 8],
+    ["asset.property.count", 3],
+    ["asset.property.estimatedValue", 5000000]
   ]);
 
   const model = buildFinancialModel(answers, "safe");
 
-  expect(model.assets.investableAssets).toBe(400000);
-  expect(model.assets.expectedReturnRate).toBe(5);
+  expect(model.assets.investableAssets).toBe(300000);
+  expect(model.assets.expectedReturnRate).toBeCloseTo(6.333, 3);
+  expect(model.assets.propertyCount).toBe(3);
+  expect(model.assets.propertyValue).toBe(5000000);
+  expect(model.assets.totalNetWorth).toBe(5300000);
 });
 
 it("defaults retirement expenses to current expenses but allows review overrides", () => {
@@ -92,7 +95,7 @@ function emptyScenario(tier: ScenarioTier) {
     ...category.items.map((item) => [item.questionId, 0] as const)
   ]);
   const zeroReserves = reserveItems.flatMap((item) => [[item.questionId, 0] as const]);
-  const zeroAssets = assetBuckets.flatMap((bucket) => [[bucket.valueQuestionId, 0] as const]);
+  const zeroAssets = assetEntries.flatMap((entry) => [[entry.valueQuestionId, 0] as const]);
 
   return setAnswers(answers, tier, [
     ...zeroExpenseAnswers,

@@ -28,35 +28,83 @@ it("selects a tier and opens a light estimator home with age and three main card
 
   expect(screen.getByRole("heading", { name: "安全版 FIRE 估算" })).toBeInTheDocument();
   expect(screen.getByLabelText("当前年龄")).toHaveValue(30);
-  expect(screen.getByRole("button", { name: "编辑收入" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "编辑资产和投资" })).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "编辑支出" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "编辑收入" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByRole("button", { name: "编辑资产和投资" })).toHaveAttribute(
+    "aria-expanded",
+    "false"
+  );
+  expect(screen.getByRole("button", { name: "编辑支出" })).toHaveAttribute("aria-expanded", "false");
 });
 
-it("edits income and assets from section cards and returns to updated home summaries", async () => {
+it("expands income inline, updates summaries live, and saves it collapsed", async () => {
   const user = userEvent.setup();
   render(<App />);
 
   await user.click(screen.getByRole("button", { name: /安全版/ }));
   await user.click(screen.getByRole("button", { name: "编辑收入" }));
 
-  expect(screen.getByRole("heading", { name: "收入" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "安全版 FIRE 估算" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存收入" })).toHaveAttribute("aria-expanded", "true");
   const salaryInput = screen.getByLabelText("固定工资（每月）");
   expect(screen.queryByRole("button", { name: /固定工资/ })).not.toBeInTheDocument();
   await user.clear(salaryInput);
   await user.type(salaryInput, "30000");
-  await user.click(screen.getByRole("button", { name: "返回估算首页" }));
 
   expect(screen.getByText("年收入：¥360,000")).toBeInTheDocument();
 
-  await user.click(screen.getByRole("button", { name: "编辑资产和投资" }));
-  expect(screen.getByRole("heading", { name: "资产和投资" })).toBeInTheDocument();
-  const cashInput = screen.getByLabelText("现金/活期金额");
-  await user.clear(cashInput);
-  await user.type(cashInput, "200000");
-  await user.click(screen.getByRole("button", { name: "返回估算首页" }));
+  await user.click(screen.getByRole("button", { name: "保存收入" }));
 
-  expect(screen.getByText("可投资资产：¥200,000")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "编辑收入" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByText("已保存")).toBeInTheDocument();
+  expect(screen.queryByLabelText("固定工资（每月）")).not.toBeInTheDocument();
+});
+
+it("opens only one main card editor at a time", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.click(screen.getByRole("button", { name: /安全版/ }));
+  await user.click(screen.getByRole("button", { name: "编辑收入" }));
+
+  expect(screen.getByLabelText("固定工资（每月）")).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "编辑资产和投资" }));
+
+  expect(screen.queryByLabelText("固定工资（每月）")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "编辑收入" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByRole("button", { name: "保存资产和投资" })).toHaveAttribute(
+    "aria-expanded",
+    "true"
+  );
+  expect(screen.getByLabelText("存款多少")).toBeInTheDocument();
+  expect(screen.getByLabelText("存款年化收益率")).toBeInTheDocument();
+  expect(screen.getByLabelText("投资多少")).toBeInTheDocument();
+  expect(screen.getByLabelText("投资年化收益率")).toBeInTheDocument();
+  expect(screen.getByLabelText("房产几个")).toBeInTheDocument();
+  expect(screen.getByLabelText("房产估值")).toBeInTheDocument();
+  expect(screen.queryByLabelText("现金/活期金额")).not.toBeInTheDocument();
+
+  const depositInput = screen.getByLabelText("存款多少");
+  await user.clear(depositInput);
+  await user.type(depositInput, "100000");
+  const depositRateInput = screen.getByLabelText("存款年化收益率");
+  await user.clear(depositRateInput);
+  await user.type(depositRateInput, "3");
+  const investmentInput = screen.getByLabelText("投资多少");
+  await user.clear(investmentInput);
+  await user.type(investmentInput, "200000");
+  const investmentRateInput = screen.getByLabelText("投资年化收益率");
+  await user.clear(investmentRateInput);
+  await user.type(investmentRateInput, "8");
+  const propertyInput = screen.getByLabelText("房产几个");
+  await user.clear(propertyInput);
+  await user.type(propertyInput, "3");
+  const propertyValueInput = screen.getByLabelText("房产估值");
+  await user.clear(propertyValueInput);
+  await user.type(propertyValueInput, "5000000");
+
+  expect(screen.getByText("可投资资产：¥300,000")).toBeInTheDocument();
+  expect(screen.getByText("预期收益率：6.3%")).toBeInTheDocument();
 });
 
 it("shows expense categories directly and expands itemized details only on demand", async () => {
@@ -66,7 +114,8 @@ it("shows expense categories directly and expands itemized details only on deman
   await user.click(screen.getByRole("button", { name: /安全版/ }));
   await user.click(screen.getByRole("button", { name: "编辑支出" }));
 
-  expect(screen.getByRole("heading", { name: "支出" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "安全版 FIRE 估算" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "保存支出" })).toHaveAttribute("aria-expanded", "true");
   expect(screen.getByLabelText("日常吃喝用估算金额")).toBeInTheDocument();
   expect(screen.getByLabelText("日常吃喝用金额周期")).toBeInTheDocument();
   expect(screen.getByLabelText("居住估算金额")).toBeInTheDocument();
@@ -78,16 +127,21 @@ it("shows expense categories directly and expands itemized details only on deman
   expect(screen.getByLabelText("在家吃饭/普通外食周期")).toBeInTheDocument();
 });
 
-it("scrolls back to the top when opening a section from the estimator home", async () => {
+it("marks the saved section while leaving the other sections editable", async () => {
   const user = userEvent.setup();
-  const scrollSpy = vi.mocked(window.scrollTo);
   render(<App />);
 
   await user.click(screen.getByRole("button", { name: /安全版/ }));
-  scrollSpy.mockClear();
   await user.click(screen.getByRole("button", { name: "编辑支出" }));
+  await user.click(screen.getByRole("button", { name: "保存支出" }));
 
-  expect(scrollSpy).toHaveBeenCalledWith(0, 0);
+  expect(screen.getByText("已保存")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "编辑收入" })).toHaveAttribute("aria-expanded", "false");
+  expect(screen.getByRole("button", { name: "编辑资产和投资" })).toHaveAttribute(
+    "aria-expanded",
+    "false"
+  );
+  expect(screen.getByRole("button", { name: "编辑支出" })).toHaveAttribute("aria-expanded", "false");
 });
 
 it("uses the age from estimator home when generating the report", async () => {
@@ -99,14 +153,39 @@ it("uses the age from estimator home when generating the report", async () => {
   await user.clear(ageInput);
   await user.type(ageInput, "42");
   await user.click(screen.getByRole("button", { name: "编辑资产和投资" }));
-  const cashInput = screen.getByLabelText("现金/活期金额");
-  await user.clear(cashInput);
-  await user.type(cashInput, "20000000");
-  await user.click(screen.getByRole("button", { name: "返回估算首页" }));
+  const depositInput = screen.getByLabelText("存款多少");
+  await user.clear(depositInput);
+  await user.type(depositInput, "20000000");
+  await user.click(screen.getByRole("button", { name: "保存资产和投资" }));
   await user.click(screen.getByRole("button", { name: "生成报告" }));
 
   expect(screen.getByRole("heading", { name: "你的 FIRE 估算" })).toBeInTheDocument();
   expect(screen.getByText("预计 FIRE 年龄：42 岁")).toBeInTheDocument();
+});
+
+it("keeps property value out of investable assets and reports it as a note", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+
+  await user.click(screen.getByRole("button", { name: /安全版/ }));
+  await user.click(screen.getByRole("button", { name: "编辑资产和投资" }));
+  const propertyInput = screen.getByLabelText("房产几个");
+  await user.clear(propertyInput);
+  await user.type(propertyInput, "2");
+  const propertyValueInput = screen.getByLabelText("房产估值");
+  await user.clear(propertyValueInput);
+  await user.type(propertyValueInput, "4200000");
+  await user.click(screen.getByRole("button", { name: "保存资产和投资" }));
+
+  expect(screen.getByText("可投资资产：¥0")).toBeInTheDocument();
+
+  await user.click(screen.getByRole("button", { name: "生成报告" }));
+
+  expect(
+    screen.getByText(
+      "已记录房产 2 套，估值 ¥4,200,000，未计入 FIRE 可投资资产；如果未来出租或出售，可以再做高级版估算。"
+    )
+  ).toBeInTheDocument();
 });
 
 it("shows sources and FIRE-after expense adjustments on the review page", async () => {
@@ -148,7 +227,7 @@ it("inherits fact answers when upgrading from baseline to abundant", async () =>
   const salaryInput = screen.getByLabelText("固定工资（每月）");
   await user.clear(salaryInput);
   await user.type(salaryInput, "12000");
-  await user.click(screen.getByRole("button", { name: "返回估算首页" }));
+  await user.click(screen.getByRole("button", { name: "保存收入" }));
   await user.click(screen.getByRole("button", { name: "Review 假设" }));
   await user.click(screen.getByRole("button", { name: "切换到富足版" }));
 

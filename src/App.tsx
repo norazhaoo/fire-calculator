@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { EstimatorHome } from "./components/EstimatorHome";
-import { Questionnaire } from "./components/Questionnaire";
 import { Report } from "./components/Report";
 import { Review } from "./components/Review";
 import { TierSelection } from "./components/TierSelection";
@@ -9,11 +8,19 @@ import { isDowngrade } from "./domain/tiers";
 import type { AnswerMap, ScenarioTier } from "./domain/types";
 
 type EditableSection = "income" | "assets" | "expenses";
-type AppStep = "tier" | "home" | "section" | "review" | "report";
+type SavedSections = Record<EditableSection, boolean>;
+type AppStep = "tier" | "home" | "review" | "report";
+
+const emptySavedSections: SavedSections = {
+  income: false,
+  assets: false,
+  expenses: false
+};
 
 export default function App() {
   const [step, setStep] = useState<AppStep>("tier");
-  const [activeSection, setActiveSection] = useState<EditableSection | null>(null);
+  const [expandedSection, setExpandedSection] = useState<EditableSection | null>(null);
+  const [savedSections, setSavedSections] = useState<SavedSections>(emptySavedSections);
   const [selectedTier, setSelectedTier] = useState<ScenarioTier | null>(null);
   const [answers, setAnswers] = useState<AnswerMap>({});
 
@@ -21,11 +28,13 @@ export default function App() {
     if (step !== "tier") {
       window.scrollTo(0, 0);
     }
-  }, [activeSection, step]);
+  }, [step]);
 
   function handleSelectTier(tier: ScenarioTier) {
     setSelectedTier(tier);
     setAnswers(createDefaultAnswers(tier));
+    setExpandedSection(null);
+    setSavedSections(emptySavedSections);
     setStep("home");
   }
 
@@ -44,13 +53,30 @@ export default function App() {
 
     setAnswers((currentAnswers) => switchTier(currentAnswers, selectedTier, nextTier));
     setStep(isDowngrade(selectedTier, nextTier) ? "review" : "home");
-    setActiveSection(null);
+    setExpandedSection(null);
     setSelectedTier(nextTier);
   }
 
   function handleEditSection(section: EditableSection) {
-    setActiveSection(section);
-    setStep("section");
+    setExpandedSection(section);
+  }
+
+  function handleSaveSection(section: EditableSection) {
+    setSavedSections((currentSections) => ({
+      ...currentSections,
+      [section]: true
+    }));
+    setExpandedSection(null);
+  }
+
+  function goToReview() {
+    setExpandedSection(null);
+    setStep("review");
+  }
+
+  function goToReport() {
+    setExpandedSection(null);
+    setStep("report");
   }
 
   if (step === "tier" || !selectedTier) {
@@ -70,7 +96,7 @@ export default function App() {
           onAnswerChange={handleAnswerChange}
           onSwitchTier={handleSwitchTier}
           onBack={() => setStep("home")}
-          onGenerateReport={() => setStep("report")}
+          onGenerateReport={goToReport}
         />
       </main>
     );
@@ -89,30 +115,14 @@ export default function App() {
       <main className="app-shell">
         <EstimatorHome
           answers={answers}
+          expandedSection={expandedSection}
+          savedSections={savedSections}
           tier={selectedTier}
           onAnswerChange={handleAnswerChange}
           onEditSection={handleEditSection}
-          onReview={() => setStep("review")}
-          onGenerateReport={() => setStep("report")}
-        />
-      </main>
-    );
-  }
-
-  if (step === "section" && activeSection) {
-    return (
-      <main className="app-shell">
-        <Questionnaire
-          answers={answers}
-          tier={selectedTier}
-          section={activeSection}
-          title={questionnaireTitle(activeSection)}
-          description={questionnaireDescription(activeSection)}
-          onAnswerChange={handleAnswerChange}
-          onBack={() => {
-            setActiveSection(null);
-            setStep("home");
-          }}
+          onSaveSection={handleSaveSection}
+          onReview={goToReview}
+          onGenerateReport={goToReport}
         />
       </main>
     );
@@ -122,36 +132,15 @@ export default function App() {
     <main className="app-shell">
       <EstimatorHome
         answers={answers}
+        expandedSection={expandedSection}
+        savedSections={savedSections}
         tier={selectedTier}
         onAnswerChange={handleAnswerChange}
         onEditSection={handleEditSection}
-        onReview={() => setStep("review")}
-        onGenerateReport={() => setStep("report")}
+        onSaveSection={handleSaveSection}
+        onReview={goToReview}
+        onGenerateReport={goToReport}
       />
     </main>
   );
-}
-
-function questionnaireTitle(section: EditableSection) {
-  if (section === "income") {
-    return "收入";
-  }
-
-  if (section === "assets") {
-    return "资产和投资";
-  }
-
-  return "支出";
-}
-
-function questionnaireDescription(section: EditableSection) {
-  if (section === "income") {
-    return "收入默认都是 0。按税后到账填写，并勾选 FIRE 后仍会继续的收入。";
-  }
-
-  if (section === "assets") {
-    return "把资产分桶填写，系统会用计入 FIRE 的资产和加权收益率来模拟达成年限。";
-  }
-
-  return "每个大类都能直接填年度估算；不确定时用默认值，想细算时切到明细。";
 }

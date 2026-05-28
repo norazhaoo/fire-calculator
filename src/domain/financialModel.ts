@@ -1,8 +1,9 @@
 import {
   annualize,
-  assetBuckets,
+  assetEntries,
   expenseCategories,
   incomeSources,
+  propertyEstimatedValueQuestionId,
   reserveItems,
   type ExpenseEntryMode,
   type Period
@@ -24,12 +25,16 @@ export interface IncomeModel {
 export interface AssetModel {
   investableAssets: number;
   expectedReturnRate: number;
+  propertyCount: number;
+  propertyValue: number;
+  totalNetWorth: number;
   buckets: Array<{
     id: string;
     label: string;
     value: number;
     returnRate: number;
     included: boolean;
+    unit: "yuan" | "count";
   }>;
 }
 
@@ -114,24 +119,35 @@ function buildIncomeModel(answers: AnswerMap): IncomeModel {
 }
 
 function buildAssetModel(answers: AnswerMap): AssetModel {
-  const buckets = assetBuckets.map((bucket) => ({
-    id: bucket.id,
-    label: bucket.label,
-    value: numberAnswer(answers, bucket.valueQuestionId),
-    returnRate: numberAnswer(answers, bucket.returnRateQuestionId, bucket.defaultReturnRate),
-    included: booleanAnswer(answers, bucket.includeQuestionId, bucket.defaultIncluded)
+  const buckets = assetEntries.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    value: numberAnswer(answers, entry.valueQuestionId),
+    returnRate:
+      entry.includedInFire && entry.unit === "yuan"
+        ? numberAnswer(answers, entry.returnRateQuestionId, entry.defaultReturnRate)
+        : entry.defaultReturnRate,
+    included: entry.includedInFire,
+    unit: entry.unit
   }));
-  const includedBuckets = buckets.filter((bucket) => bucket.included);
+  const includedBuckets = buckets.filter(
+    (bucket) => bucket.included && bucket.unit === "yuan"
+  );
   const investableAssets = sum(includedBuckets.map((bucket) => bucket.value));
   const weightedReturn =
     investableAssets > 0
       ? sum(includedBuckets.map((bucket) => bucket.value * bucket.returnRate)) / investableAssets
       : 4;
+  const propertyCount = numberAnswer(answers, "asset.property.count");
+  const propertyValue = numberAnswer(answers, propertyEstimatedValueQuestionId);
 
   return {
     buckets,
     investableAssets,
-    expectedReturnRate: weightedReturn
+    expectedReturnRate: weightedReturn,
+    propertyCount,
+    propertyValue,
+    totalNetWorth: investableAssets + propertyValue
   };
 }
 

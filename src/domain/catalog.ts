@@ -12,16 +12,20 @@ export interface IncomeSourceDefinition {
   period: Period;
 }
 
-export interface AssetBucketDefinition {
+export interface AssetEntryDefinition {
   id: string;
   label: string;
   description: string;
   valueQuestionId: string;
+  unit: "yuan" | "count";
   returnRateQuestionId: string;
   includeQuestionId: string;
   defaultReturnRate: number;
-  defaultIncluded: boolean;
+  includedInFire: boolean;
+  treatment: string;
 }
+
+export const propertyEstimatedValueQuestionId = "asset.property.estimatedValue";
 
 export interface ExpenseItemDefinition {
   id: string;
@@ -70,13 +74,37 @@ export const incomeSources: IncomeSourceDefinition[] = [
   source("other", "其他收入", "不适合放入前面类别的收入，按保守值填写。", "monthly")
 ];
 
-export const assetBuckets: AssetBucketDefinition[] = [
-  bucket("cash", "现金/活期", "随时可用、波动很低的钱，比如现金、活期、货币基金。", 2, true),
-  bucket("lowRisk", "低风险理财/债基", "低波动资产，比如存款、国债、债券基金、稳健理财。", 3, true),
-  bucket("mediumRisk", "中风险基金/指数", "长期可能有波动但预期收益更高的基金、指数或组合。", 5, true),
-  bucket("highRisk", "高风险股票/权益", "波动很大的股票、权益基金、创业投资等高风险资产。", 8, true),
-  bucket("home", "自住房", "自己住的房子，默认不卖出变现，所以不计入 FIRE 可投资资产。", 0, false),
-  bucket("investmentProperty", "投资房/其他资产", "可出租、可出售或能产生现金流的房产和其他资产。", 2.5, true)
+export const assetEntries: AssetEntryDefinition[] = [
+  assetEntry(
+    "deposit",
+    "存款多少",
+    "银行卡、现金、余额宝、定期、稳健理财等低波动资金总额。",
+    "asset.deposit.value",
+    "yuan",
+    2,
+    true,
+    "计入 FIRE 可投资资产，默认按 2% 年化估算。"
+  ),
+  assetEntry(
+    "investment",
+    "投资多少",
+    "基金、股票、指数、债券基金和其他投资账户的大概总额。",
+    "asset.investment.value",
+    "yuan",
+    5,
+    true,
+    "计入 FIRE 可投资资产，默认按 5% 年化估算。"
+  ),
+  assetEntry(
+    "property",
+    "房产几个",
+    "填写房产数量和当前大概估值；系统不会默认假设卖房。",
+    "asset.property.count",
+    "count",
+    0,
+    false,
+    "估值用于净资产和报告提示，不计入 FIRE 可投资资产。"
+  )
 ];
 
 export const expenseCategories: ExpenseCategoryDefinition[] = [
@@ -194,22 +222,27 @@ function source(
   };
 }
 
-function bucket(
+function assetEntry(
   id: string,
   label: string,
   description: string,
+  valueQuestionId: string,
+  unit: AssetEntryDefinition["unit"],
   defaultReturnRate: number,
-  defaultIncluded: boolean
-): AssetBucketDefinition {
+  includedInFire: boolean,
+  treatment: string
+): AssetEntryDefinition {
   return {
     id,
     label,
     description,
-    valueQuestionId: `asset.${id}.value`,
+    valueQuestionId,
+    unit,
     returnRateQuestionId: `asset.${id}.returnRate`,
     includeQuestionId: `asset.${id}.include`,
     defaultReturnRate,
-    defaultIncluded
+    includedInFire,
+    treatment
   };
 }
 

@@ -1,4 +1,9 @@
-import { assetBuckets, expenseCategories, incomeSources } from "../domain/catalog";
+import {
+  assetEntries,
+  expenseCategories,
+  incomeSources,
+  propertyEstimatedValueQuestionId
+} from "../domain/catalog";
 import { getQuestionDefaultValue, questions } from "../domain/questions";
 import type { AnswerMap, Question, QuestionSection, ScenarioTier } from "../domain/types";
 import { FormField } from "./FormField";
@@ -7,10 +12,7 @@ interface QuestionnaireProps {
   answers: AnswerMap;
   tier: ScenarioTier;
   section: Extract<QuestionSection, "income" | "assets" | "expenses">;
-  title: string;
-  description: string;
   onAnswerChange: (questionId: string, value: number | string | boolean) => void;
-  onBack: () => void;
 }
 
 const questionById = new Map(questions.map((question) => [question.id, question]));
@@ -19,15 +21,10 @@ export function Questionnaire({
   answers,
   tier,
   section,
-  title,
-  description,
   onAnswerChange,
-  onBack
 }: QuestionnaireProps) {
   return (
-    <section aria-labelledby="questionnaire-title">
-      <h1 id="questionnaire-title">{title}</h1>
-      <p className="section-copy">{description}</p>
+    <>
       {section === "income" ? (
         <IncomeSection
           answers={answers}
@@ -49,12 +46,7 @@ export function Questionnaire({
           onAnswerChange={onAnswerChange}
         />
       ) : null}
-      <div className="action-row">
-        <button type="button" onClick={onBack}>
-          返回估算首页
-        </button>
-      </div>
-    </section>
+    </>
   );
 }
 
@@ -100,17 +92,19 @@ function AssetSection({
   onAnswerChange
 }: SectionProps) {
   return (
-    <div className="section-stack">
-      {assetBuckets.map((bucket) => {
-        const valueQuestion = requireQuestion(bucket.valueQuestionId);
-        const returnQuestion = requireQuestion(bucket.returnRateQuestionId);
-        const includeQuestion = requireQuestion(bucket.includeQuestionId);
+    <div className="asset-entry-grid">
+      {assetEntries.map((entry) => {
+        const valueQuestion = requireQuestion(entry.valueQuestionId);
+        const secondaryQuestion = requireQuestion(
+          entry.id === "property" ? propertyEstimatedValueQuestionId : entry.returnRateQuestionId
+        );
 
         return (
-          <article className="entry-card" key={bucket.id}>
+          <article className="entry-card asset-entry-card" key={entry.id}>
             <div>
-              <h2>{bucket.label}</h2>
-              <p className="muted">{bucket.description}</p>
+              <h2>{entry.label}</h2>
+              <p className="muted">{entry.description}</p>
+              <p className="asset-treatment">{entry.treatment}</p>
             </div>
             <div className="asset-fields">
               <FormField
@@ -119,14 +113,9 @@ function AssetSection({
                 onChange={(value) => onAnswerChange(valueQuestion.id, value)}
               />
               <FormField
-                question={returnQuestion}
-                value={answerValue(answers, returnQuestion, tier)}
-                onChange={(value) => onAnswerChange(returnQuestion.id, value)}
-              />
-              <FormField
-                question={includeQuestion}
-                value={answerValue(answers, includeQuestion, tier)}
-                onChange={(value) => onAnswerChange(includeQuestion.id, value)}
+                question={secondaryQuestion}
+                value={answerValue(answers, secondaryQuestion, tier)}
+                onChange={(value) => onAnswerChange(secondaryQuestion.id, value)}
               />
             </div>
           </article>

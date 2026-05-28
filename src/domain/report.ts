@@ -17,6 +17,7 @@ export interface Report {
   comparison: TierReport[];
   impactItems: { category: ExpenseCategoryId; label: string; annualCost: number }[];
   cashflowWarning: string | null;
+  propertyNote: string | null;
 }
 
 const questionById = new Map(questions.map((question) => [question.id, question]));
@@ -37,13 +38,18 @@ export function buildReport(answers: AnswerMap, selectedTier: ScenarioTier): Rep
     selected.financial.annualContribution <= 0
       ? "按当前收入和支出，年度可投资结余为 0，FIRE 时间主要依赖已有资产增长。"
       : null;
+  const propertyNote =
+    selected.financial.assets.propertyCount > 0 || selected.financial.assets.propertyValue > 0
+      ? `已记录房产 ${selected.financial.assets.propertyCount} 套${formatPropertyValue(selected.financial.assets.propertyValue)}，未计入 FIRE 可投资资产；如果未来出租或出售，可以再做高级版估算。`
+      : null;
 
   return {
     selectedTier,
     selected,
     comparison,
     impactItems,
-    cashflowWarning
+    cashflowWarning,
+    propertyNote
   };
 }
 
@@ -94,4 +100,16 @@ function numberAnswer(answers: AnswerMap, questionId: string) {
   const value = answers[questionId]?.value;
 
   return typeof value === "number" && Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function formatPropertyValue(value: number) {
+  if (value <= 0) {
+    return "";
+  }
+
+  return `，估值 ${new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "CNY",
+    maximumFractionDigits: 0
+  }).format(value)}`;
 }

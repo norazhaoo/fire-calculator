@@ -5,7 +5,12 @@ it("shows core income, asset, and expense questions for every tier", () => {
 
   expect(safeQuestionIds).toContain("currentAge");
   expect(safeQuestionIds).toContain("income.fixed.monthly");
-  expect(safeQuestionIds).toContain("asset.cash.value");
+  expect(safeQuestionIds).toContain("asset.deposit.value");
+  expect(safeQuestionIds).toContain("asset.deposit.returnRate");
+  expect(safeQuestionIds).toContain("asset.investment.value");
+  expect(safeQuestionIds).toContain("asset.investment.returnRate");
+  expect(safeQuestionIds).toContain("asset.property.count");
+  expect(safeQuestionIds).toContain("asset.property.estimatedValue");
   expect(safeQuestionIds).toContain("expense.daily.quickAnnual");
   expect(safeQuestionIds).toContain("reserve.majorMedical");
 });
@@ -21,10 +26,19 @@ it("uses tier-specific defaults for lifestyle expense questions", () => {
 
 it("filters questionnaire fields by section", () => {
   const incomeQuestionIds = getQuestionsForSection("safe", "income").map((question) => question.id);
+  const assetQuestionIds = getQuestionsForSection("safe", "assets").map((question) => question.id);
   const expenseQuestionIds = getQuestionsForSection("safe", "expenses").map((question) => question.id);
 
   expect(incomeQuestionIds).toContain("income.fixed.monthly");
   expect(incomeQuestionIds).not.toContain("expense.daily.quickAnnual");
+  expect(assetQuestionIds).toEqual([
+    "asset.deposit.value",
+    "asset.deposit.returnRate",
+    "asset.investment.value",
+    "asset.investment.returnRate",
+    "asset.property.count",
+    "asset.property.estimatedValue"
+  ]);
   expect(expenseQuestionIds).toContain("expense.daily.quickAnnual");
   expect(expenseQuestionIds).not.toContain("expense.daily.retirementAnnual");
 });

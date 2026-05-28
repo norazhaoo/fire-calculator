@@ -28,6 +28,7 @@ export function Report({ answers, tier, onBackToReview }: ReportProps) {
           {selected.fire.fireAge === null ? "需要改善现金流或资产假设" : `${selected.fire.fireAge} 岁`}
         </p>
         {report.cashflowWarning ? <p className="warning-text">{report.cashflowWarning}</p> : null}
+        {report.propertyNote ? <p className="section-copy">{report.propertyNote}</p> : null}
       </div>
 
       <div className="metric-grid">
